@@ -28,20 +28,23 @@ button,input,select{font:inherit}.app{min-height:100vh}.top{height:70px;padding:
 .todo-grid{display:grid;grid-template-columns:1fr auto;gap:8px}.todo-list{display:flex;flex-direction:column;gap:7px;margin-top:12px;max-height:240px;overflow:auto}.todo-item{display:flex;align-items:center;gap:9px;padding:10px;background:#09111b;border:1px solid var(--line);border-radius:10px}.todo-item.done{opacity:.55}.todo-item.done .todo-title{text-decoration:line-through}.todo-check{width:19px;height:19px;accent-color:var(--accent)}.todo-title{flex:1}.priority{font-size:11px;color:var(--muted);border:1px solid var(--line);padding:3px 6px;border-radius:5px}.delete{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:16px}
 .chart{height:210px;margin-top:10px}.bars{height:170px;display:flex;align-items:end;gap:8px;border-bottom:1px solid var(--line);padding:0 5px}.barcol{height:100%;flex:1;display:flex;align-items:end;justify-content:center;position:relative}.barfill{width:70%;max-width:42px;min-height:2px;background:var(--accent);border-radius:7px 7px 0 0;transition:height .4s}.barlabel{position:absolute;bottom:-22px;color:var(--muted);font-size:10px}.barvalue{position:absolute;top:calc(100% - 190px);font-size:10px;color:var(--text);opacity:.8}
 .touch-wrap{display:flex;justify-content:center;align-items:center;margin:18px 0}.touch-timer{width:220px;height:220px;border-radius:50%;background:conic-gradient(var(--accent) 0deg,#172538 0deg);display:grid;place-items:center;box-shadow:0 0 35px #4c9aff22;cursor:pointer;user-select:none;touch-action:none}.touch-inner{width:184px;height:184px;border-radius:50%;background:#09111b;display:flex;flex-direction:column;align-items:center;justify-content:center}.touch-time{font-size:38px;font-weight:800}.touch-hint{font-size:11px;color:var(--muted);margin-top:5px}.quick{display:flex;justify-content:center;gap:7px;margin-bottom:12px}.quick button{flex:0 0 auto}
+
+#confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999}
+.goal-toast{position:fixed;left:50%;top:18%;transform:translate(-50%,-20px) scale(.96);opacity:0;z-index:10000;padding:18px 24px;border:1px solid var(--line);border-radius:16px;background:#0b1522ee;box-shadow:0 15px 50px #0008;text-align:center;pointer-events:none;transition:.35s ease}.goal-toast.show{opacity:1;transform:translate(-50%,0) scale(1)}.goal-toast b{display:block;font-size:22px}.goal-toast span{color:var(--muted);font-size:13px}
 </style>
 
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#060a10">
 <meta name="background-color" content="#060a10">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FocusClock">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
 </head>
-<body>
+<body><canvas id="confettiCanvas"></canvas><div class="goal-toast" id="goalToast"><b>🎉 Goal Complete!</b><span>Awesome work — today’s study goal is done.</span></div>
 <div class="app">
-<header class="top"><div class="logo">Focus<b>Clock</b> <span style="color:#60758d">V2</span></div><div class="actions"><button class="btn" id="installPWA" style="display:none">📲 Install</button><button class="btn" id="format">24H</button><button class="btn" id="full">⛶ Fullscreen</button></div></header>
+<header class="top"><div class="logo">Focus<b>Clock</b> <span style="color:#60758d">V2</span></div><div class="actions"><button class="btn" id="format">24H</button><button class="btn" id="full">⛶ Fullscreen</button></div></header>
 <main class="grid">
 <section class="left">
 <div class="card hero"><div class="clock" id="clock">00:00:00</div><div class="date" id="date"></div><div class="ring"><i id="dayProgress"></i></div><div class="quote" id="quote"></div></div>
@@ -94,10 +97,10 @@ button,input,select{font:inherit}.app{min-height:100vh}.top{height:70px;padding:
 const $=id=>document.getElementById(id), pad=n=>String(n).padStart(2,'0');
 const key='fcv2_'; let is24=true,sound=true;
 let data=JSON.parse(localStorage.getItem(key+'data')||'{}');
-data.goal=data.goal||120;data.sessions=data.sessions||[];data.swHistory=data.swHistory||[];data.pom=data.pom||{focus:0,break:0};data.todos=data.todos||[];
+data.goal=data.goal||120;data.sessions=data.sessions||[];data.swHistory=data.swHistory||[];data.pom=data.pom||{focus:0,break:0};data.todos=data.todos||[];data.goalCelebratedDate=data.goalCelebratedDate||'';
 let quotes=['Small progress is still progress.','One focused hour beats five distracted ones.','Start before you feel ready.','Your future self will thank you.','Focus on the next 25 minutes.','Consistency > motivation.'];
 
-function save(){localStorage.setItem(key+'data',JSON.stringify(data));renderStats();renderHistory()}
+function save(){localStorage.setItem(key+'data',JSON.stringify(data));renderStats();renderHistory();renderTodos();}
 function renderStats(){
  let today=new Date().toISOString().slice(0,10),mins=data.sessions.filter(x=>x.date===today).reduce((a,x)=>a+x.min,0);
  let pct=Math.min(100,Math.round(mins/data.goal*100));
@@ -215,27 +218,6 @@ document.addEventListener('keydown',e=>{
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.error));
 }
-let deferredInstallPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  const b = document.getElementById('installPWA');
-  if (b) b.style.display = 'inline-block';
-});
-window.addEventListener('appinstalled', () => {
-  deferredInstallPrompt = null;
-  const b = document.getElementById('installPWA');
-  if (b) b.style.display = 'none';
-});
-</script>
-
-<script>
-document.addEventListener('click', e => {
-  if (e.target && e.target.id === 'installPWA' && deferredInstallPrompt) {
-    deferredInstallPrompt.prompt();
-    deferredInstallPrompt.userChoice.finally(() => { deferredInstallPrompt = null; e.target.style.display='none'; });
-  }
-});
 </script>
 </body>
 </html>
