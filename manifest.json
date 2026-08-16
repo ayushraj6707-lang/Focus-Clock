@@ -1,0 +1,51 @@
+{
+  "name": "FocusClock \u2014 Study Timer",
+  "short_name": "FocusClock",
+  "description": "A focused study dashboard with clock, Pomodoro, timers, goals, tasks, study tracking and graphs.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#060a10",
+  "theme_color": "#060a10",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Pomodoro",
+      "short_name": "Pomodoro",
+      "url": "./#pom",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "To-Do List",
+      "short_name": "To-Do",
+      "url": "./#todo",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
