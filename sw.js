@@ -1,4 +1,4 @@
-const CACHE = "focusclock-v5-complete";
+const CACHE = "focusclock-v5-final-2026-08-17";
 const SHELL = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

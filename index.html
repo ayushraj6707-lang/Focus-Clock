@@ -32,7 +32,23 @@ button,input,select{font:inherit}.app{min-height:100vh}.top{height:70px;padding:
 #confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999}
 .goal-toast{position:fixed;left:50%;top:18%;transform:translate(-50%,-20px) scale(.96);opacity:0;z-index:10000;padding:18px 24px;border:1px solid var(--line);border-radius:16px;background:#0b1522ee;box-shadow:0 15px 50px #0008;text-align:center;pointer-events:none;transition:.35s ease}.goal-toast.show{opacity:1;transform:translate(-50%,0) scale(1)}.goal-toast b{display:block;font-size:22px}.goal-toast span{color:var(--muted);font-size:13px}
 
-/* FocusClock V5 advanced UI */
+/* V5 visual mood artwork */
+#themeArt{position:fixed;inset:70px 0 0;pointer-events:none;z-index:0;overflow:hidden;opacity:.72;transition:opacity .5s ease,filter .5s ease}
+#themeArt .art-title{position:absolute;right:5vw;top:7vh;font-size:clamp(42px,8vw,120px);opacity:.08;font-weight:900;letter-spacing:-.06em}
+#themeArt .orb{position:absolute;width:26vmin;height:26vmin;border-radius:50%;right:8vw;top:10vh;box-shadow:0 0 80px var(--focus-glow);background:radial-gradient(circle at 35% 30%,#fff9 0 4%,var(--focus-accent) 5% 55%,transparent 70%)}
+#themeArt .mountain{position:absolute;bottom:-8vh;width:70vw;height:35vh;left:-8vw;clip-path:polygon(0 100%,18% 58%,31% 82%,48% 34%,63% 75%,78% 48%,100% 100%);background:linear-gradient(150deg,var(--focus-accent),#0000);opacity:.18}
+#themeArt .mountain.two{left:40vw;bottom:-14vh;transform:scale(1.3);opacity:.12}
+#themeArt .stars{position:absolute;inset:0;background-image:radial-gradient(circle,#fff 0 1px,transparent 1.5px);background-size:90px 90px;opacity:.11}
+body.mood-sunset #themeArt{background:radial-gradient(circle at 80% 18%,#ffb36a55,transparent 24%),linear-gradient(180deg,#33150f22,transparent 55%)}
+body.mood-calm #themeArt{background:radial-gradient(circle at 70% 20%,#65d6c255,transparent 25%),linear-gradient(180deg,#0b423b22,transparent 55%)}
+body.mood-forest #themeArt{background:radial-gradient(circle at 75% 22%,#79d17b55,transparent 25%),linear-gradient(180deg,#0c401a22,transparent 60%)}
+body.mood-purple #themeArt{background:radial-gradient(circle at 75% 18%,#b78cff55,transparent 27%),linear-gradient(180deg,#38115d22,transparent 60%)}
+body.mood-ocean #themeArt{background:radial-gradient(circle at 75% 20%,#54c7ff55,transparent 28%),linear-gradient(180deg,#0a496622,transparent 60%)}
+body:not(.mood-calm):not(.mood-sunset):not(.mood-forest):not(.mood-purple):not(.mood-ocean) #themeArt{background:radial-gradient(circle at 75% 18%,#63adff44,transparent 25%),linear-gradient(180deg,#071d3a22,transparent 60%)}
+.app{position:relative;z-index:1}
+/* theme controls */
+.theme-btn{transition:transform .18s ease,box-shadow .25s ease,border-color .25s ease,background .25s ease}.theme-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px var(--focus-glow)}.theme-btn.active{border-color:var(--focus-accent)!important;box-shadow:0 0 0 2px var(--focus-glow),0 8px 30px var(--focus-glow);background:color-mix(in srgb,var(--focus-accent) 14%,var(--card))!important}
+body.mood-calm,body.mood-sunset,body.mood-forest,body.mood-purple,body.mood-ocean{background:var(--theme-bg)!important} body.mood-calm .card,body.mood-calm .v5-card,body.mood-sunset .card,body.mood-sunset .v5-card,body.mood-forest .card,body.mood-forest .v5-card,body.mood-purple .card,body.mood-purple .v5-card,body.mood-ocean .card,body.mood-ocean .v5-card{background:var(--theme-card)!important;border-color:var(--focus-glow)!important} /* FocusClock V5 advanced UI */
 :root{--focus-accent:#63adff;--focus-glow:#63adff55}
 body.mood-calm{--focus-accent:#65d6c2;--focus-glow:#65d6c233;--accent:#65d6c2;--theme-bg:#071514;--theme-card:#0d1b1a}
 body.mood-sunset{--focus-accent:#ff9b6a;--focus-glow:#ff9b6a33;--accent:#ff9b6a;--theme-bg:#160c08;--theme-card:#1b120e}
@@ -66,7 +82,7 @@ body.study-mode .focus-banner{display:flex!important}
 <meta name="apple-mobile-web-app-title" content="FocusClock">
 <link rel="apple-touch-icon" href="./icon-192.png">
 </head>
-<body><canvas id="confettiCanvas"></canvas><div class="goal-toast" id="goalToast"><b>🎉 Goal Complete!</b><span>Awesome work — today’s study goal is done.</span></div>
+<body><div id="themeArt" aria-hidden="true"></div><canvas id="confettiCanvas"></canvas><div class="goal-toast" id="goalToast"><b>🎉 Goal Complete!</b><span>Awesome work — today’s study goal is done.</span></div>
 <div class="app">
 <header class="top"><div class="logo">Focus<b>Clock</b> <span style="color:#60758d">V2</span></div><div class="actions"><button class="btn" id="format">24H</button><button class="btn" id="full">⛶ Fullscreen</button></div></header>
 <main class="grid">
@@ -124,10 +140,19 @@ let data=JSON.parse(localStorage.getItem(key+'data')||'{}');
 data.goal=data.goal||120;data.sessions=data.sessions||[];data.swHistory=data.swHistory||[];data.pom=data.pom||{focus:0,break:0};data.todos=data.todos||[];data.goalCelebratedDate=data.goalCelebratedDate||'';
 let quotes=['Small progress is still progress.','One focused hour beats five distracted ones.','Start before you feel ready.','Your future self will thank you.','Focus on the next 25 minutes.','Consistency > motivation.'];
 
+function celebrateGoal(){
+  const canvas=document.getElementById('confettiCanvas'),ctx=canvas.getContext('2d'); if(!canvas||!ctx)return;
+  const dpr=Math.min(2,window.devicePixelRatio||1); canvas.width=innerWidth*dpr;canvas.height=innerHeight*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  const pieces=Array.from({length:150},()=>({x:innerWidth*.5+(Math.random()-.5)*160,y:innerHeight*.2,vx:(Math.random()-.5)*9,vy:Math.random()*-10-3,g:.28,r:Math.random()*6+3,rot:Math.random()*6.28,vr:(Math.random()-.5)*.3,life:100+Math.random()*50}));
+  const colors=['#63adff','#58d6a0','#ffd166','#ff6b7a','#b78cff','#54c7ff']; let frame=0;
+  const draw=()=>{ctx.clearRect(0,0,innerWidth,innerHeight);pieces.forEach(p=>{p.x+=p.vx;p.vy+=p.g;p.y+=p.vy;p.rot+=p.vr;p.life-=1;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.globalAlpha=Math.max(0,p.life/120);ctx.fillStyle=colors[(p.r|0)%colors.length];ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.8);ctx.restore()});if(frame++<150)requestAnimationFrame(draw);else ctx.clearRect(0,0,innerWidth,innerHeight)};draw();
+  const toast=document.getElementById('goalToast');if(toast){toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3500)}
+}
+function checkGoalCelebration(mins,today){if(mins>=data.goal && data.goalCelebratedDate!==today){data.goalCelebratedDate=today;localStorage.setItem(key+'data',JSON.stringify(data));celebrateGoal();}}
 function save(){localStorage.setItem(key+'data',JSON.stringify(data));renderStats();renderHistory();renderTodos();}
 function renderStats(){
- let today=new Date().toISOString().slice(0,10),mins=data.sessions.filter(x=>x.date===today).reduce((a,x)=>a+x.min,0);
- let pct=Math.min(100,Math.round(mins/data.goal*100));
+ let today=dayKey(),mins=data.sessions.filter(x=>x.date===today).reduce((a,x)=>a+x.min,0);
+ let pct=Math.min(100,Math.round(mins/data.goal*100)); checkGoalCelebration(mins,today);
  $('todayStudy').textContent=mins>=60?Math.floor(mins/60)+'h '+mins%60+'m':mins+'m';
  $('todaySessions').textContent=data.sessions.filter(x=>x.date===today).length;$('goalPct').textContent=pct+'%';$('goalMinutes').textContent=data.goal;$('goalText').textContent=mins+' / '+data.goal+' min';$('goalBar').style.width=pct+'%';
  let streak=0,d=new Date();while(true){let k=d.toISOString().slice(0,10),m=data.sessions.filter(x=>x.date===k).reduce((a,x)=>a+x.min,0);if(!m)break;streak++;d.setDate(d.getDate()-1)}$('streak').textContent=streak+'d';
@@ -174,7 +199,7 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelect
 let pomMs=25*60000,pomInt=null,pomMode='focus',pomSession=1;
 function pomDraw(){let x=Math.max(0,pomMs);$('pomDisplay').textContent=pad(Math.floor(x/60000))+':'+pad(Math.floor(x/1000)%60);$('pomMode').textContent=(pomMode==='focus'?'Focus':'Break')+' • Session '+pomSession}
 function pomReset(){clearInterval(pomInt);pomInt=null;pomMode='focus';pomMs=25*60000;pomDraw();$('pomStart').textContent='Start'}
-$('pomStart').onclick=()=>{if(pomInt)return;pomInt=setInterval(()=>{pomMs-=1000;pomDraw();if(pomMs<=0){clearInterval(pomInt);pomInt=null;beep();if(pomMode==='focus'){data.sessions.push({date:new Date().toISOString().slice(0,10),min:25,subject:'Pomodoro Focus'});save();pomMode='break';pomMs=5*60000}else{pomMode='focus';pomMs=25*60000;pomSession++}pomDraw();alert(pomMode==='break'?'Focus complete! Take a 5-minute break.':'Break over! Back to focus.') }},1000);$('pomStart').textContent='Running'}
+$('pomStart').onclick=()=>{if(pomInt)return;pomInt=setInterval(()=>{pomMs-=1000;pomDraw();if(pomMs<=0){clearInterval(pomInt);pomInt=null;beep();if(pomMode==='focus'){data.sessions.push({date:dayKey(),min:25,subject:'Pomodoro Focus'});save();pomMode='break';pomMs=5*60000}else{pomMode='focus';pomMs=25*60000;pomSession++}pomDraw();alert(pomMode==='break'?'Focus complete! Take a 5-minute break.':'Break over! Back to focus.') }},1000);$('pomStart').textContent='Running'}
 $('pomPause').onclick=()=>{clearInterval(pomInt);pomInt=null;$('pomStart').textContent='Resume'}
 $('pomReset').onclick=pomReset;pomDraw();
 
@@ -218,7 +243,7 @@ $('swReset').onclick=()=>{clearInterval(swInt);swInt=null;sw=0;laps=[];$('swStar
 
 // study
 $('setGoal').onclick=()=>{data.goal=Math.max(10,+$('goalInput').value||120);save()}
-$('addStudy').onclick=()=>{let min=Math.max(1,+$('manual').value||0);if(!min)return;data.sessions.push({date:new Date().toISOString().slice(0,10),min,subject:$('subject').value.trim()||'Study'});$('subject').value='';$('manual').value='';save()}
+$('addStudy').onclick=()=>{let min=Math.max(1,+$('manual').value||0);if(!min)return;data.sessions.push({date:dayKey(),min,subject:$('subject').value.trim()||'Study'});$('subject').value='';$('manual').value='';save()}
 
 // world clocks
 let cities=[['New Delhi','Asia/Kolkata'],['London','Europe/London'],['New York','America/New_York'],['Tokyo','Asia/Tokyo'],['Dubai','Asia/Dubai'],['Sydney','Australia/Sydney']];
@@ -293,7 +318,7 @@ if ('serviceWorker' in navigator) {
 <script>
 (function(){
   const $v5=id=>document.getElementById(id);
-  function dayKey(){return new Date().toISOString().slice(0,10)}
+  function dayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
   function dailyResetV5(){
     const d=window.data;
     if(!d)return;
@@ -305,7 +330,7 @@ if ('serviceWorker' in navigator) {
       d.goalCelebratedDate='';
       localStorage.setItem(window.key+'data',JSON.stringify(d));
       if(typeof renderTodos==='function')renderTodos();
-      if(typeof renderStats==='function')renderStats();
+      if(typeof renderStats==='function')renderStats(); if(typeof renderChart==='function')renderChart();
     }
   }
   dailyResetV5();
@@ -319,16 +344,19 @@ if ('serviceWorker' in navigator) {
 
   const savedMood=localStorage.getItem('focusclock-mood')||'default';
   function setMood(m){
-     document.body.classList.remove('mood-calm','mood-sunset','mood-forest','mood-purple','mood-ocean','study-mode');
+     const valid=['default','calm','sunset','forest','purple','ocean']; if(!valid.includes(m))m='default';
+     document.body.classList.remove('mood-calm','mood-sunset','mood-forest','mood-purple','mood-ocean');
      if(m!=='default')document.body.classList.add('mood-'+m);
      localStorage.setItem('focusclock-mood',m);
      document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.dataset.mood===m));
      const names={default:'Midnight',calm:'Calm',sunset:'Sunset',forest:'Forest',purple:'Purple',ocean:'Ocean'};
-     const status=document.getElementById('themeStatus');
-     if(status) status.textContent='Current: '+(names[m]||'Midnight');
-     const colors={default:'#060a10',calm:'#65d6c2',sunset:'#ff9b6a',forest:'#79d17b',purple:'#b78cff',ocean:'#54c7ff'};
-     const meta=document.querySelector('meta[name="theme-color"]');
-     if(meta) meta.setAttribute('content',colors[m]||colors.default);
+     const status=document.getElementById('themeStatus'); if(status)status.textContent='Current: '+names[m];
+     const art={
+       default:['🌌','Midnight'],calm:['🌿','Calm'],sunset:['🌅','Sunset'],forest:['🌲','Forest'],purple:['🔮','Purple'],ocean:['🌊','Ocean']
+     }[m];
+     const ta=document.getElementById('themeArt'); if(ta)ta.innerHTML='<div class="stars"></div><div class="orb"></div><div class="mountain"></div><div class="mountain two"></div><div class="art-title">'+art[0]+' '+art[1]+'</div>';
+     const colors={default:'#63adff',calm:'#65d6c2',sunset:'#ff9b6a',forest:'#79d17b',purple:'#b78cff',ocean:'#54c7ff'};
+     const meta=document.querySelector('meta[name="theme-color"]'); if(meta)meta.setAttribute('content',colors[m]);
    }
   setMood(savedMood);
   document.querySelectorAll('.theme-btn').forEach(b=>b.addEventListener('click',()=>setMood(b.dataset.mood)));

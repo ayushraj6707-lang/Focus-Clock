@@ -1,7 +1,7 @@
 {
-  "name": "FocusClock \u2014 Study Timer",
+  "name": "FocusClock \u2014 Advanced Study Dashboard",
   "short_name": "FocusClock",
-  "description": "Advanced study dashboard with Pomodoro, touch timer, tasks, goals, graphs, themes and Study Mode.",
+  "description": "Study dashboard with mood scenes, Study Mode, Pomodoro, touch timer, goals, tasks, graphs, streaks and offline PWA support.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
