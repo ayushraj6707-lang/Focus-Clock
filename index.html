@@ -9,7 +9,7 @@
  --bg:#060a10;--card:#0d1520;--card2:#111d2b;--line:#1d2b3d;--text:#edf5ff;
  --muted:#91a2b8;--accent:#63adff;--green:#58d6a0;--yellow:#ffd166;--red:#ff6b7a;
 }
-*{box-sizing:border-box}body{margin:0;color:var(--text);background:radial-gradient(circle at 50% -10%,#173254 0,#060a10 52%);font-family:Inter,Segoe UI,system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;transition:background .35s ease,color .2s ease;color:var(--text);background:radial-gradient(circle at 50% -10%,#173254 0,#060a10 52%);font-family:Inter,Segoe UI,system-ui,sans-serif}
 button,input,select{font:inherit}.app{min-height:100vh}.top{height:70px;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:#07101add;backdrop-filter:blur(12px);position:sticky;top:0;z-index:5}
 .logo{font-weight:850;font-size:21px}.logo b{color:var(--accent)}.actions{display:flex;gap:8px}.btn{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px 13px;cursor:pointer}.btn:hover{background:var(--card2)}.primary{background:var(--accent);color:#04101d;border-color:var(--accent);font-weight:750}
 .grid{max-width:1550px;margin:auto;padding:18px;display:grid;grid-template-columns:1.5fr 1fr;gap:18px}.left,.right{display:flex;flex-direction:column;gap:16px}.card{background:linear-gradient(145deg,#0e1723f4,#09111bf4);border:1px solid var(--line);border-radius:18px;box-shadow:0 16px 50px #0007}
@@ -34,12 +34,16 @@ button,input,select{font:inherit}.app{min-height:100vh}.top{height:70px;padding:
 
 /* FocusClock V5 advanced UI */
 :root{--focus-accent:#63adff;--focus-glow:#63adff55}
-body.mood-calm{--focus-accent:#65d6c2;--focus-glow:#65d6c233}
-body.mood-sunset{--focus-accent:#ff9b6a;--focus-glow:#ff9b6a33}
-body.mood-forest{--focus-accent:#79d17b;--focus-glow:#79d17b33}
-body.mood-purple{--focus-accent:#b78cff;--focus-glow:#b78cff33}
-body.mood-ocean{--focus-accent:#54c7ff;--focus-glow:#54c7ff33}
-body.study-mode{--focus-accent:#ffd166;--focus-glow:#ffd16633}
+body.mood-calm{--focus-accent:#65d6c2;--focus-glow:#65d6c233;--accent:#65d6c2;--theme-bg:#071514;--theme-card:#0d1b1a}
+body.mood-sunset{--focus-accent:#ff9b6a;--focus-glow:#ff9b6a33;--accent:#ff9b6a;--theme-bg:#160c08;--theme-card:#1b120e}
+body.mood-forest{--focus-accent:#79d17b;--focus-glow:#79d17b33;--accent:#79d17b;--theme-bg:#08150b;--theme-card:#0d1b11}
+body.mood-purple{--focus-accent:#b78cff;--focus-glow:#b78cff33;--accent:#b78cff;--theme-bg:#10091a;--theme-card:#171023}
+body.mood-ocean{--focus-accent:#54c7ff;--focus-glow:#54c7ff33;--accent:#54c7ff;--theme-bg:#06121a;--theme-card:#0b1822}
+body:not(.mood-calm):not(.mood-sunset):not(.mood-forest):not(.mood-purple):not(.mood-ocean){--theme-bg:#060a10;--theme-card:#0d1520}
+body.mood-calm,body.mood-sunset,body.mood-forest,body.mood-purple,body.mood-ocean{background:radial-gradient(circle at 50% -10%,var(--focus-glow) 0,var(--theme-bg) 55%)}
+body.mood-calm .card,body.mood-sunset .card,body.mood-forest .card,body.mood-purple .card,body.mood-ocean .card{background:var(--theme-card)}
+body.mood-calm .theme-btn.active,body.mood-sunset .theme-btn.active,body.mood-forest .theme-btn.active,body.mood-purple .theme-btn.active,body.mood-ocean .theme-btn.active{box-shadow:0 0 18px var(--focus-glow)}
+body.study-mode{--focus-accent:#ffd166;--focus-glow:#ffd16633;--accent:#ffd166}
 body.study-mode .nonessential{display:none!important}
 body.study-mode .focus-banner{display:flex!important}
 .focus-banner{display:none;position:sticky;top:8px;z-index:1000;align-items:center;justify-content:center;gap:10px;padding:9px 14px;margin:8px auto;border:1px solid var(--line);border-radius:12px;background:#09111bf2;box-shadow:0 10px 30px #0006}
@@ -245,7 +249,7 @@ if ('serviceWorker' in navigator) {
   <section class="v5-card">
     <h3>🎨 Mood & Theme</h3>
     <div class="v5-muted">Choose the atmosphere for your study session.</div>
-    <div class="theme-row" id="themeRow">
+    <div id="themeStatus" style="color:var(--focus-accent);font-size:12px;margin-top:2px">Current: Midnight</div><div class="theme-row" id="themeRow">
       <button class="theme-btn" data-mood="default">Midnight</button>
       <button class="theme-btn" data-mood="calm">Calm</button>
       <button class="theme-btn" data-mood="sunset">Sunset</button>
@@ -315,11 +319,17 @@ if ('serviceWorker' in navigator) {
 
   const savedMood=localStorage.getItem('focusclock-mood')||'default';
   function setMood(m){
-    document.body.classList.remove('mood-calm','mood-sunset','mood-forest','mood-purple','mood-ocean','study-mode');
-    if(m!=='default')document.body.classList.add('mood-'+m);
-    localStorage.setItem('focusclock-mood',m);
-    document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.dataset.mood===m));
-  }
+     document.body.classList.remove('mood-calm','mood-sunset','mood-forest','mood-purple','mood-ocean','study-mode');
+     if(m!=='default')document.body.classList.add('mood-'+m);
+     localStorage.setItem('focusclock-mood',m);
+     document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.dataset.mood===m));
+     const names={default:'Midnight',calm:'Calm',sunset:'Sunset',forest:'Forest',purple:'Purple',ocean:'Ocean'};
+     const status=document.getElementById('themeStatus');
+     if(status) status.textContent='Current: '+(names[m]||'Midnight');
+     const colors={default:'#060a10',calm:'#65d6c2',sunset:'#ff9b6a',forest:'#79d17b',purple:'#b78cff',ocean:'#54c7ff'};
+     const meta=document.querySelector('meta[name="theme-color"]');
+     if(meta) meta.setAttribute('content',colors[m]||colors.default);
+   }
   setMood(savedMood);
   document.querySelectorAll('.theme-btn').forEach(b=>b.addEventListener('click',()=>setMood(b.dataset.mood)));
 
