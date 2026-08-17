@@ -31,6 +31,26 @@ button,input,select{font:inherit}.app{min-height:100vh}.top{height:70px;padding:
 
 #confettiCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999}
 .goal-toast{position:fixed;left:50%;top:18%;transform:translate(-50%,-20px) scale(.96);opacity:0;z-index:10000;padding:18px 24px;border:1px solid var(--line);border-radius:16px;background:#0b1522ee;box-shadow:0 15px 50px #0008;text-align:center;pointer-events:none;transition:.35s ease}.goal-toast.show{opacity:1;transform:translate(-50%,0) scale(1)}.goal-toast b{display:block;font-size:22px}.goal-toast span{color:var(--muted);font-size:13px}
+
+/* FocusClock V5 advanced UI */
+:root{--focus-accent:#63adff;--focus-glow:#63adff55}
+body.mood-calm{--focus-accent:#65d6c2;--focus-glow:#65d6c233}
+body.mood-sunset{--focus-accent:#ff9b6a;--focus-glow:#ff9b6a33}
+body.mood-forest{--focus-accent:#79d17b;--focus-glow:#79d17b33}
+body.mood-purple{--focus-accent:#b78cff;--focus-glow:#b78cff33}
+body.mood-ocean{--focus-accent:#54c7ff;--focus-glow:#54c7ff33}
+body.study-mode{--focus-accent:#ffd166;--focus-glow:#ffd16633}
+body.study-mode .nonessential{display:none!important}
+body.study-mode .focus-banner{display:flex!important}
+.focus-banner{display:none;position:sticky;top:8px;z-index:1000;align-items:center;justify-content:center;gap:10px;padding:9px 14px;margin:8px auto;border:1px solid var(--line);border-radius:12px;background:#09111bf2;box-shadow:0 10px 30px #0006}
+.focus-banner button{margin-left:auto}
+.v5-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:14px}
+.v5-card{padding:16px;border:1px solid var(--line);border-radius:14px;background:#09111b}
+.v5-card h3{margin:0 0 8px}.v5-muted{color:var(--muted);font-size:12px}
+.theme-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.theme-btn{border:1px solid var(--line);background:#101b2a;color:var(--text);border-radius:9px;padding:8px 11px;cursor:pointer}.theme-btn.active{outline:2px solid var(--focus-accent);border-color:transparent}
+.smart-stat{font-size:25px;font-weight:800}.smart-progress{height:9px;background:#182536;border-radius:9px;overflow:hidden;margin-top:9px}.smart-progress>i{display:block;height:100%;background:var(--focus-accent);width:0;transition:.4s}
+.session-log{max-height:170px;overflow:auto;display:flex;flex-direction:column;gap:6px;margin-top:8px}.session-row{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;background:#0d1724;border-radius:9px;font-size:12px}
+@media(max-width:600px){.v5-grid{grid-template-columns:1fr}.focus-banner{font-size:12px}}
 </style>
 
 <link rel="manifest" href="./manifest.json">
@@ -218,6 +238,130 @@ document.addEventListener('keydown',e=>{
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.error));
 }
+</script>
+
+<div class="focus-banner" id="focusBanner">🎯 <b>Study Mode ON</b><span>Distractions hidden • Focus on the session</span><button class="btn" id="exitStudyMode">Exit</button></div>
+<div class="v5-grid nonessential">
+  <section class="v5-card">
+    <h3>🎨 Mood & Theme</h3>
+    <div class="v5-muted">Choose the atmosphere for your study session.</div>
+    <div class="theme-row" id="themeRow">
+      <button class="theme-btn" data-mood="default">Midnight</button>
+      <button class="theme-btn" data-mood="calm">Calm</button>
+      <button class="theme-btn" data-mood="sunset">Sunset</button>
+      <button class="theme-btn" data-mood="forest">Forest</button>
+      <button class="theme-btn" data-mood="purple">Purple</button>
+      <button class="theme-btn" data-mood="ocean">Ocean</button>
+    </div>
+    <div class="theme-row"><button class="btn primary" id="studyModeBtn">🎯 Enter Study Mode</button></div>
+  </section>
+  <section class="v5-card">
+    <h3>🧠 Smart Daily Coach</h3>
+    <div class="v5-muted" id="coachText">Loading your study plan…</div>
+    <div class="smart-progress"><i id="coachProgress"></i></div>
+    <div class="v5-muted" id="coachStats" style="margin-top:8px"></div>
+  </section>
+  <section class="v5-card">
+    <h3>🔥 Focus Streak</h3>
+    <div class="smart-stat" id="v5Streak">0 days</div>
+    <div class="v5-muted">Keep your daily goal alive.</div>
+  </section>
+  <section class="v5-card">
+    <h3>⚡ Quick Focus</h3>
+    <div class="theme-row">
+      <button class="btn" data-focus="15">15 min</button>
+      <button class="btn" data-focus="25">25 min</button>
+      <button class="btn" data-focus="45">45 min</button>
+      <button class="btn" data-focus="60">60 min</button>
+    </div>
+    <div class="v5-muted" style="margin-top:8px">Starts the touch timer with one tap.</div>
+  </section>
+  <section class="v5-card">
+    <h3>📌 Today's Sessions</h3>
+    <div class="session-log" id="v5Sessions"></div>
+  </section>
+  <section class="v5-card">
+    <h3>🔕 Focus Rules</h3>
+    <div class="v5-muted">Study Mode hides non-essential dashboard cards. Timer and goals stay available.</div>
+  </section>
+</div>
+
+<script>
+(function(){
+  const $v5=id=>document.getElementById(id);
+  function dayKey(){return new Date().toISOString().slice(0,10)}
+  function dailyResetV5(){
+    const d=window.data;
+    if(!d)return;
+    d.todos=d.todos||[];
+    d.todoDate=d.todoDate||dayKey();
+    if(d.todoDate!==dayKey()){
+      d.todos=[];
+      d.todoDate=dayKey();
+      d.goalCelebratedDate='';
+      localStorage.setItem(window.key+'data',JSON.stringify(d));
+      if(typeof renderTodos==='function')renderTodos();
+      if(typeof renderStats==='function')renderStats();
+    }
+  }
+  dailyResetV5();
+
+  function scheduleMidnight(){
+    const now=new Date(), next=new Date(now);
+    next.setHours(24,0,2,0);
+    setTimeout(()=>{dailyResetV5();updateCoach();scheduleMidnight()},Math.max(1000,next-now));
+  }
+  scheduleMidnight();
+
+  const savedMood=localStorage.getItem('focusclock-mood')||'default';
+  function setMood(m){
+    document.body.classList.remove('mood-calm','mood-sunset','mood-forest','mood-purple','mood-ocean','study-mode');
+    if(m!=='default')document.body.classList.add('mood-'+m);
+    localStorage.setItem('focusclock-mood',m);
+    document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.dataset.mood===m));
+  }
+  setMood(savedMood);
+  document.querySelectorAll('.theme-btn').forEach(b=>b.addEventListener('click',()=>setMood(b.dataset.mood)));
+
+  function setStudyMode(on){
+    document.body.classList.toggle('study-mode',on);
+    localStorage.setItem('focusclock-study-mode',on?'1':'0');
+    $v5('studyModeBtn').textContent=on?'↩ Exit Study Mode':'🎯 Enter Study Mode';
+  }
+  setStudyMode(localStorage.getItem('focusclock-study-mode')==='1');
+  $v5('studyModeBtn').onclick=()=>setStudyMode(!document.body.classList.contains('study-mode'));
+  $v5('exitStudyMode').onclick=()=>setStudyMode(false);
+
+  function updateCoach(){
+    if(!window.data)return;
+    const sessions=window.data.sessions||[];
+    const today=dayKey();
+    const mins=sessions.filter(x=>x.date===today).reduce((a,x)=>a+(+x.min||0),0);
+    const goal=+window.data.goal||120;
+    const pct=Math.min(100,mins/goal*100);
+    const remaining=Math.max(0,goal-mins);
+    $v5('coachProgress').style.width=pct+'%';
+    $v5('coachStats').textContent=`${mins} min done • ${remaining} min to goal`;
+    let msg=mins===0?'Start with a 25-minute focused session.':remaining===0?'Goal complete — protect your streak!':remaining<=25?'Almost there. One focused block can finish it.':`You’re ${Math.round(pct)}% there. Keep going.`;
+    $v5('coachText').textContent=msg;
+    const streakEl=$v5('v5Streak');
+    if(streakEl)streakEl.textContent=(window.data.streak||0)+' days';
+    const box=$v5('v5Sessions');
+    if(box){
+      const rows=sessions.filter(x=>x.date===today).slice(-8).reverse();
+      box.innerHTML=rows.length?rows.map(x=>`<div class="session-row"><span>${x.type||'Study'}</span><b>${x.min} min</b></div>`).join(''):'<div class="v5-muted">No sessions today yet.</div>';
+    }
+  }
+  updateCoach();
+  setInterval(updateCoach,30000);
+
+  document.querySelectorAll('[data-focus]').forEach(b=>b.addEventListener('click',()=>{
+    const minutes=+b.dataset.focus;
+    if(typeof tmTotal!=='undefined'){clearInterval(tmInt);tmInt=null;tmTotal=minutes*60000;tmMs=tmTotal;tmDraw();}
+    const tab=document.querySelector('[data-tab="timer"]');
+    if(tab)tab.click();
+  }));
+})();
 </script>
 </body>
 </html>
