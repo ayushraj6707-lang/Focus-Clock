@@ -85,6 +85,44 @@ body.fc5-study-mode .fc5-study{display:block}
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FocusClock">
 <link rel="apple-touch-icon" href="./icon-192.png">
+
+<style id="fc-ui-polish">
+#fcThemeBtn{
+  width:48px!important;height:48px!important;padding:0!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  font-size:22px!important;border-radius:14px!important;
+  box-shadow:0 8px 24px #0006!important;transition:transform .18s,box-shadow .18s!important
+}
+#fcThemeBtn:hover{transform:translateY(-2px) scale(1.04)!important}
+#fcThemeBox{
+  width:min(330px,calc(100vw - 32px))!important;
+  padding:16px!important;border-radius:18px!important;
+  box-shadow:0 20px 60px #0009!important
+}
+#fcThemeClose{
+  width:32px!important;height:32px!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  font-size:17px!important;font-weight:700!important;
+  background:#1b293b!important;color:#fff!important;border:1px solid #ffffff18!important;
+  transition:.18s!important
+}
+#fcThemeClose:hover{background:#9b3f4d!important;transform:scale(1.05)}
+.fc-ui-theme{
+  position:relative;overflow:hidden;min-height:45px!important;
+  font-weight:600!important;transition:transform .18s,filter .18s!important
+}
+.fc-ui-theme:hover{transform:translateY(-2px)!important;filter:brightness(1.12)!important}
+.fc-ui-theme:before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:10px 0 0 10px
+}
+.fc-ui-theme[data-fct="midnight"]:before{background:#7895ff}
+.fc-ui-theme[data-fct="calm"]:before{background:#69d7bd}
+.fc-ui-theme[data-fct="sunset"]:before{background:#ff986b}
+.fc-ui-theme[data-fct="forest"]:before{background:#78cf7a}
+.fc-ui-theme[data-fct="purple"]:before{background:#b88cff}
+.fc-ui-theme[data-fct="ocean"]:before{background:#54cfff}
+.fc-quick-flash{outline:3px solid #63adff!important;box-shadow:0 0 28px #63adff66!important}
+</style>
 </head>
 <body><canvas id="confettiCanvas"></canvas><div class="goal-toast" id="goalToast"><b>🎉 Goal Complete!</b><span>Awesome work — today’s study goal is done.</span></div>
 <div class="app">
@@ -512,6 +550,68 @@ document.addEventListener("click",e=>{
     e.stopPropagation();
     box.classList.toggle("open");
   };
+})();
+</script>
+
+<script id="fc-ui-polish-controller">
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const box=$("#fcThemeBox"), toggle=$("#fcThemeBtn"), close=$("#fcThemeClose");
+
+function closeThemes(){ if(box) box.classList.remove("open"); }
+if(toggle){
+  toggle.addEventListener("click",function(e){
+    e.stopPropagation();
+    if(box) box.classList.toggle("open");
+  });
+}
+if(close) close.addEventListener("click",function(e){e.stopPropagation();closeThemes();});
+document.addEventListener("click",function(e){
+  if(box && box.classList.contains("open") && !box.contains(e.target) && e.target!==toggle) closeThemes();
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeThemes();});
+document.querySelectorAll("#fcThemeBox [data-fct]").forEach(b=>{
+  b.addEventListener("click",()=>setTimeout(closeThemes,120));
+});
+
+/* Quick Focus: select the duration, then smoothly scroll to the actual timer.
+   Uses existing timer functions when available, without replacing the app's timer. */
+function findTimer(){
+  const sels=[
+    "#timer",".timer",".timer-card","#timerSection",
+    "[data-tab='timer']","[id*='timer' i]","[class*='timer' i]"
+  ];
+  for(const s of sels){try{const el=document.querySelector(s);if(el)return el}catch(e){}}
+  return null;
+}
+function activateTimerTab(){
+  const candidates=[...document.querySelectorAll("[data-tab='timer'],button,nav a")];
+  const b=candidates.find(x=>((x.textContent||"").trim().toLowerCase().includes("timer")));
+  if(b && typeof b.click==="function") b.click();
+}
+function scrollToTimer(){
+  activateTimerTab();
+  setTimeout(()=>{
+    const el=findTimer();
+    if(el) el.scrollIntoView({behavior:"smooth",block:"center"});
+  },100);
+}
+document.addEventListener("click",function(e){
+  const b=e.target.closest("[data-focus]");
+  if(!b)return;
+  setTimeout(scrollToTimer,180);
+});
+
+/* If the app exposes a timer container, give it a brief visual confirmation. */
+document.addEventListener("click",function(e){
+  const b=e.target.closest("[data-focus]");
+  if(!b)return;
+  setTimeout(()=>{
+    const el=findTimer();
+    if(el){el.classList.add("fc-quick-flash");setTimeout(()=>el.classList.remove("fc-quick-flash"),900)}
+  },250);
+});
 })();
 </script>
 </body>
