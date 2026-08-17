@@ -123,6 +123,20 @@ body.fc5-study-mode .fc5-study{display:block}
 .fc-ui-theme[data-fct="ocean"]:before{background:#54cfff}
 .fc-quick-flash{outline:3px solid #63adff!important;box-shadow:0 0 28px #63adff66!important}
 </style>
+
+<style id="fc-white-x">
+#fcThemeBox{position:relative!important}
+#fcThemeClose{
+  position:absolute!important;right:12px!important;top:10px!important;
+  width:28px!important;height:28px!important;
+  padding:0!important;margin:0!important;
+  border:0!important;background:transparent!important;
+  color:#fff!important;font-size:21px!important;line-height:28px!important;
+  font-weight:400!important;cursor:pointer!important;
+  opacity:.9!important;box-shadow:none!important;
+}
+#fcThemeClose:hover{opacity:1!important;transform:none!important;background:transparent!important}
+</style>
 </head>
 <body><canvas id="confettiCanvas"></canvas><div class="goal-toast" id="goalToast"><b>🎉 Goal Complete!</b><span>Awesome work — today’s study goal is done.</span></div>
 <div class="app">
@@ -612,6 +626,18 @@ document.addEventListener("click",function(e){
     if(el){el.classList.add("fc-quick-flash");setTimeout(()=>el.classList.remove("fc-quick-flash"),900)}
   },250);
 });
+})();
+</script>
+
+<script id="fc-white-x-js">
+(function(){
+  const box=document.getElementById("fcThemeBox");
+  const x=document.getElementById("fcThemeClose");
+  if(!box||!x)return;
+  x.addEventListener("click",function(e){
+    e.preventDefault(); e.stopPropagation();
+    box.classList.remove("open");
+  });
 })();
 </script>
 </body>
