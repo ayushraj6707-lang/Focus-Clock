@@ -493,5 +493,26 @@ document.addEventListener("click",e=>{
 });
 })();
 </script>
+
+<script id="fcThemePopupCloseFix">
+(function(){
+  const box=document.getElementById("fcThemeBox");
+  const toggle=document.getElementById("fcThemeBtn");
+  const close=document.getElementById("fcThemeClose");
+  if(!box||!toggle)return;
+  const hide=()=>box.classList.remove("open");
+  if(close)close.addEventListener("click",e=>{e.stopPropagation();hide()});
+  document.addEventListener("click",e=>{
+    if(box.classList.contains("open") && !box.contains(e.target) && e.target!==toggle) hide();
+  });
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")hide()});
+  box.querySelectorAll("[data-fct]").forEach(b=>b.addEventListener("click",()=>setTimeout(hide,80)));
+  const oldToggle=toggle.onclick;
+  toggle.onclick=e=>{
+    e.stopPropagation();
+    box.classList.toggle("open");
+  };
+})();
+</script>
 </body>
 </html>
