@@ -665,5 +665,48 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
+ <script>
+(function () {
+  const popup = document.getElementById("fcThemeBox");
+  if (!popup) return;
+
+  // Remove old close button if any
+  const old = popup.querySelector(".fc-theme-close");
+  if (old) old.remove();
+
+  const close = document.createElement("button");
+  close.className = "fc-theme-close";
+  close.innerHTML = "×";
+  close.setAttribute("aria-label", "Close theme");
+
+  close.style.cssText = `
+    position:absolute;
+    top:8px;
+    right:10px;
+    width:34px;
+    height:34px;
+    border:0;
+    background:transparent;
+    color:#fff;
+    font-size:30px;
+    font-weight:bold;
+    line-height:30px;
+    cursor:pointer;
+    z-index:99999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  `;
+
+  popup.style.position = "relative";
+  popup.appendChild(close);
+
+  close.addEventListener("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    popup.classList.remove("open");
+  });
+})();
+</script>
 </body>
 </html>
