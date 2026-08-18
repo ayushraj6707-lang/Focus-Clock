@@ -629,16 +629,41 @@ document.addEventListener("click",function(e){
 })();
 </script>
 
-<script id="fc-white-x-js">
-(function(){
-  const box=document.getElementById("fcThemeBox");
-  const x=document.getElementById("fcThemeClose");
-  if(!box||!x)return;
-  x.addEventListener("click",function(e){
-    e.preventDefault(); e.stopPropagation();
-    box.classList.remove("open");
-  });
-})();
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const popup = document.getElementById("fcThemeBox");
+
+    if (!popup) return;
+
+    const closeBtn = document.createElement("button");
+
+    closeBtn.id = "fcThemeClose";
+    closeBtn.innerHTML = "✕";
+
+    closeBtn.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 22px;
+        font-weight: 400;
+        cursor: pointer;
+        z-index: 9999;
+        padding: 2px 6px;
+        line-height: 1;
+    `;
+
+    popup.style.position = "relative";
+    popup.prepend(closeBtn);
+
+    closeBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        popup.classList.remove("open");
+    });
+});
 </script>
 </body>
 </html>
